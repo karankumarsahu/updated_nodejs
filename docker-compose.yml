@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  node_wireguard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: node_wireguard
+    ports:
+      - "8000:8000" # Map the container's port 3000 to host's port 3000
+      - "51820:51820/udp" # Map the container's port 51820 to host's port 51820/udp
+    cap_add:
+      - NET_ADMIN # Required for network administration capabilities
+    networks:
+      - wg-network
+    volumes:
+      - ./etc/wireguard:/etc/wireguard # Bind mount for WireGuard config files
+
+networks:
+  wg-network:
+    driver: bridge
