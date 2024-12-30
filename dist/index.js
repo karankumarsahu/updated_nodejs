@@ -7,6 +7,7 @@ const express_1 = __importDefault(require("express"));
 const child_process_1 = require("child_process");
 const fs_1 = require("fs");
 const ipPoolManager_1 = require("./ipPoolManager");
+const axios_1 = __importDefault(require("axios"));
 const app = (0, express_1.default)();
 app.use(express_1.default.json());
 // WireGuard Configuration Paths
@@ -107,10 +108,10 @@ app.post("/remove-peer", async (req, res) => {
         const success = poolManager.removePeer(clientPublicKey);
         if (success) {
             console.log(`Peer ${clientPublicKey} removed successfully`);
-            res.status(200).json({ message: "Peer removed successfully" });
+            res.status(200).json({ success: true, message: "Peer removed successfully" });
         }
         else {
-            res.status(404).json({ error: "Peer not found" });
+            res.status(200).json({ success: false, message: "Peer not found" });
         }
     }
     catch (error) {
@@ -151,4 +152,17 @@ app.listen(8000, async () => {
 });
 app.get("/", (_req, res) => {
     res.status(200).send("Welcome to the WireGuard Server!");
+});
+app.get("/get-public-ip", async (req, res) => {
+    try {
+        const response = await axios_1.default.get('https://api.ipify.org?format=json');
+        const publicIP = response.data.ip; // Extract the IP from the response
+        res.status(200).json({ publicIP });
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            res.status(500).json({ error: error.message });
+            console.error("Error fetching public IP:", error);
+        }
+    }
 });

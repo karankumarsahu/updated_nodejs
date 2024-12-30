@@ -3,7 +3,7 @@ import { exec } from "child_process";
 import { promises as fs } from "fs";
 import { AddressInfo } from "net";
 import { IPPoolManager, createIPPoolManager } from './ipPoolManager';
-
+import axios from "axios" 
 
 const app = express();
 app.use(express.json());
@@ -136,9 +136,9 @@ app.post("/remove-peer", async (req: Request, res: Response): Promise<any> => {
 
     if (success) {
       console.log(`Peer ${clientPublicKey} removed successfully`);
-      res.status(200).json({ message: "Peer removed successfully" });
+      res.status(200).json({success: true, message: "Peer removed successfully" });
     } else {
-      res.status(404).json({ error: "Peer not found" });
+      res.status(200).json({success: false, message: "Peer not found" });
     }
   } catch (error) {
     if (error instanceof Error) {
@@ -184,3 +184,17 @@ app.listen(8000, async () => {
 app.get("/", (_req, res) => {
   res.status(200).send("Welcome to the WireGuard Server!");
 })
+
+
+app.get("/get-public-ip", async (req: Request, res: Response): Promise<void> => {
+  try {
+    const response = await axios.get('https://api.ipify.org?format=json');
+    const publicIP = response.data.ip; // Extract the IP from the response
+    res.status(200).json({ publicIP });
+  } catch (error) {
+    if (error instanceof Error) {
+      res.status(500).json({ error: error.message });
+      console.error("Error fetching public IP:", error);
+    }
+  }
+});
